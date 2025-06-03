@@ -5,10 +5,9 @@ from src.api.models.permit import Permit
 from src.api.models.search_query import SearchQuery
 from src.services.permit_data_service import PermitDataService
 
-# todo fix route name to @tmow
 router = APIRouter(prefix="/api/v1", tags=["Permit Data API"])
 
-@lru_cache()
+@lru_cache(maxsize=1)
 def get_data_service():
     """
     Returns the PermitDataService instance.
@@ -16,9 +15,18 @@ def get_data_service():
     """
     return PermitDataService()
 
-@router.get("/permits", response_model=List[Permit])
-async def get_all_permits(
+@router.get("/permits", response_model=List[Permit], summary="Search permits", description="""
+Filter mobile food facility permits using optional query parameters.
+
+- `applicant`: Case-insensitive partial match.
+- `status`: Case-insensitive exact match (defaults to "Approved").
+- `address`: Case-insensitive partial match.
+- `latitude` + `longitude`: Return the 5 closest trucks.
+
+Invalid coordinates are skipped.
+""")
+async def get_permits(
     data_service: PermitDataService = Depends(get_data_service),
     query: SearchQuery = Depends()
 ):
-    return data_service.get_all_permits(query)
+    return data_service.get_permits(query)

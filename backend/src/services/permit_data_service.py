@@ -32,7 +32,7 @@ class PermitDataService:
             logger.error(f"Failed to load CSV at {csv_path}: {e}")
             raise
 
-    def get_all_permits(self, query: SearchQuery) -> List[Permit]:
+    def get_permits(self, query: SearchQuery) -> List[Permit]:
         """
         Retrieve and filter mobile food facility permits.
 
