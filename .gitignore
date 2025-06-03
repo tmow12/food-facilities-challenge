@@ -1,0 +1,54 @@
+# --- Frontend ignores (now relative to root) ---
+frontend/node_modules
+frontend/.pnp
+frontend/.pnp.js
+
+# testing
+frontend/coverage
+
+# production
+frontend/build
+
+# misc
+frontend/.DS_Store
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# --- Backend ignores ---
+backend/__pycache__/
+backend/**/*.pyc
+backend/.DS_Store
+
+# If poetry creates a virtual environment locally (rare but possible)
+backend/.venv/
+.venv/
+
+# Python environment files
+.env
+.env.*
+backend/.env
+backend/.env.*
+
+# Pytest and coverage
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+
+# mypy, ruff, etc.
+backend/.mypy_cache/
+backend/.ruff_cache/
+
+# Logs
+backend/*.log
+
+# --- Global ignores ---
+__pycache__/
+*.py[cod]
+*.log
+.DS_Store
