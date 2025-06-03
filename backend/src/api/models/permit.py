@@ -1,10 +1,7 @@
 from typing import Optional
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
-def to_camel(string: str) -> str:
-    parts = string.split('_')
-    return parts[0] + ''.join(word.capitalize() for word in parts[1:])
 
 class Permit(BaseModel):
     """
@@ -41,24 +38,8 @@ class Permit(BaseModel):
     neighborhoods_old: Optional[int] = Field(None, alias="Neighborhoods (old)", description="Neighborhoods (old)")
 
 
-    @field_validator("noi_sent", mode="before")
-    def parse_noi_sent(cls, value):
-        """
-        Custom validator for the NOISent field to parse the date string into a datetime object.
-        Since the date format (MM/DD/YYYY hh:mm:ss AM/PM) isn't natively supported by datetime.fromisoformat() or pydantic's auto-parser
-        If the date format is not valid, it raises a ValueError with a descriptive message
-        """ 
-        if isinstance(value, str):
-            try:
-                return datetime.strptime(value, "%m/%d/%Y %I:%M:%S %p")
-            except ValueError:
-                raise ValueError(f"Invalid date format for NOISent: {value}")
-        return value
-    
-
-    class Config:
-        allow_population_by_field_name = True
-        alias_generator = to_camel
-        # This tells Pydantic to ignore any extra fields passed into the model that are not explicitly defined
-        extra = 'ignore'   
-        # No additional code is needed here. The industry standard way to convert snake_case to camelCase for Pydantic models is to use an alias_generator function (like to_camel) in the Config class, as you have done above. This approach is widely used and recommended in the Pydantic documentation.
+    model_config = ConfigDict(
+        from_attributes=True,  # Allow population from python attrs (objects)
+        populate_by_name=True,  # Allow populating by field name instead of alias
+        extra="ignore",         # Ignore extra fields when parsing
+    )
