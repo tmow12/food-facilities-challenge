@@ -76,22 +76,22 @@ class PermitDataService:
 
             def compute_distance(row):
                 try:
-                    # Convert latitude and longitude to float and calculate distance
                     truck_location = (float(row["Latitude"]), float(row["Longitude"]))
-                    # Calculate the distance in kilometers
                     return distance(user_location, truck_location).km
                 except (ValueError, TypeError) as e:
                     logger.warning(
                         f"Skipping row due to invalid coordinates: Latitude={row.get('Latitude')}, "
                         f"Longitude={row.get('Longitude')}. Error: {e}"
                     )
-                    # Skip invalid rows
+                    # Mark as invalid coordinates by returning inf
                     return float("inf") 
 
             #  Note df.apply(..., axis=1) is slow for large datasets since this is for-loop under the hood 
             #  For large data it could be better to use geopy.distance in batches
             df_filtered = df_filtered.copy()
             df_filtered["distance"] = df_filtered.apply(compute_distance, axis=1)
+            # Drop rows where distance is inf (invalid coordinates)
+            df_filtered = df_filtered[df_filtered["distance"] != float("inf")]
             df_filtered = df_filtered.sort_values("distance").head(5)
         # Each row is converted to a dictionary, and unpacked into Permit(**row)
         # return [Permit(**row) for row in df_filtered.to_dict(orient="records")]
@@ -99,6 +99,3 @@ class PermitDataService:
             Permit(**row).model_dump(by_alias=True)
             for row in df_filtered.to_dict(orient="records")
         ]
-
-
-
