@@ -10,17 +10,17 @@ class Permit(BaseModel):
     """
     Represents a mobile food facility permit in San Francisco
     """
-    location_id: Optional[int] = Field(..., alias="locationid", description="Location id of facility") 
+    location_id: Optional[int] = Field(None, alias="locationid", description="Location id of facility")
     applicant: Optional[str] = Field(None, alias="Applicant", description="Name of permit holder")
     facility_type: Optional[str] = Field(None, alias="FacilityType", description="Type of facility permitted: truck or push cart")
     cnn: Optional[int] = Field(None, alias="cnn", description="CNN of street segment or intersection location")
     location_description: Optional[str] = Field(None, alias="LocationDescription", description="Description of street segment or intersection location")
     address: Optional[str] = Field(None, alias="Address", description="Address")
-    blocklot: Optional[str] = Field(None, alias="Blocklot", description="Block lot (parcel) number")
-    block: Optional[str] = Field(None, alias="Block", description="Block number")
-    lot: Optional[str] = Field(None, alias="Lot", description="Lot number")
-    permit: Optional[str] = Field(..., alias="permit", description="Permit number")
-    status: Optional[str] = Field(..., alias="Status", description="Status of permit: Approved or Requested")
+    blocklot: Optional[str] = Field(None, alias="blocklot", description="Block lot (parcel) number")
+    block: Optional[str] = Field(None, alias="block", description="Block number")
+    lot: Optional[str] = Field(None, alias="lot", description="Lot number")
+    permit: Optional[str] = Field(None, alias="permit", description="Permit number")
+    status: Optional[str] = Field(None, alias="Status", description="Status of permit: Approved or Requested")
     food_items: Optional[str] = Field(None, alias="FoodItems", description="A description of food items sold")
     x: Optional[float] = Field(None, alias="X", description="CA State Plane III")
     y: Optional[float] = Field(None, alias="Y", description="CA State Plane III")
@@ -31,15 +31,14 @@ class Permit(BaseModel):
     noi_sent: Optional[datetime] = Field(None, alias="NOISent", description="Date notice of intent sent")
     approved: Optional[str] = Field(None, alias="Approved", description="Date permit approved by DPW")
     received: Optional[int] = Field(None, alias="Received", description="Date permit application received from applicant")
-    prior_permit: Optional[int] = Field(None, alias="PriorPermit", description="prior existing permit with SFFD")
+    prior_permit: Optional[int] = Field(None, alias="PriorPermit", description="Prior existing permit with SFFD")
     expiration_date: Optional[str] = Field(None, alias="ExpirationDate", description="Date permit expires")
     location: Optional[str] = Field(None, alias="Location", description="Location formatted for mapping")
-    # The following fields are commented out as they are not currently used in the Permit model.
-    # fire_prevention_districts: Optional[int] = Field(None, alias="Fire Prevention Districts", description="Fire Prevention Districts")
-    # police_districts: Optional[int] = Field(None, alias="Police Districts", description="Police Districts")
-    # supervisor_districts: Optional[int] = Field(None, alias="Supervisor Districts", description="Supervisor Districts")
-    # zip_codes: Optional[int] = Field(None, alias="Zip Codes", description="Zip Codes")
-    # neighborhoods_old: Optional[int] = Field(None, alias="Neighborhoods (old)", description="Neighborhoods (old)")
+    fire_prevention_districts: Optional[int] = Field(None, alias="Fire Prevention Districts", description="Fire Prevention Districts")
+    police_districts: Optional[int] = Field(None, alias="Police Districts", description="Police Districts")
+    supervisor_districts: Optional[int] = Field(None, alias="Supervisor Districts", description="Supervisor Districts")
+    zip_codes: Optional[int] = Field(None, alias="Zip Codes", description="Zip Codes")
+    neighborhoods_old: Optional[int] = Field(None, alias="Neighborhoods (old)", description="Neighborhoods (old)")
 
 
     @field_validator("noi_sent", mode="before")
@@ -56,7 +55,6 @@ class Permit(BaseModel):
                 raise ValueError(f"Invalid date format for NOISent: {value}")
         return value
     
-   
 
     class Config:
         allow_population_by_field_name = True
@@ -64,11 +62,3 @@ class Permit(BaseModel):
         # This tells Pydantic to ignore any extra fields passed into the model that are not explicitly defined
         extra = 'ignore'   
         # No additional code is needed here. The industry standard way to convert snake_case to camelCase for Pydantic models is to use an alias_generator function (like to_camel) in the Config class, as you have done above. This approach is widely used and recommended in the Pydantic documentation.
-
-
-
-    # class Config:
-    #     alias_generator = camelize
-    #     populate_by_name = True
-    #     allow_population_by_field_name = True
-    #     extra = "ignore"

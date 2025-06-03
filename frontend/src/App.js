@@ -32,6 +32,9 @@ function App() {
     }
   };
 
+  // Check if all form fields are empty
+  const isFormEmpty = Object.values(formData).every((value) => value.trim() === '');
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
       <h1>Mobile Food Facility Permits</h1>
@@ -67,14 +70,15 @@ function App() {
         </div>
         <button
           type="submit"
+          disabled={isFormEmpty}
           style={{
             marginTop: '1rem',
             padding: '0.6rem 1.2rem',
-            backgroundColor: '#007bff',
+            backgroundColor: isFormEmpty ? '#ccc' : '#007bff',
             color: '#fff',
             border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer',
+            cursor: isFormEmpty ? 'not-allowed' : 'pointer',
           }}
         >
           Search

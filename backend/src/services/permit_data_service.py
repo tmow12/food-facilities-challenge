@@ -25,19 +25,37 @@ class PermitDataService:
         Replaces NaN with None to be compatible with Pydantic models.
         Pydantic will intrept that as null when returning the API response
         """
-        df = pd.read_csv(csv_path)
-        return df.replace({float('nan'): None})
+        try:
+            df = pd.read_csv(csv_path)
+            return df.replace({float('nan'): None})
+        except Exception as e:
+            logger.error(f"Failed to load CSV at {csv_path}: {e}")
+            raise
 
     def get_all_permits(self, query: SearchQuery) -> List[Permit]:
         """
-        Convert the DataFrame rows into a list of Permit instances.
+        Retrieve and filter mobile food facility permits.
+
+        This method filters permits based on query parameters and returns a list
+        of matching permits serialized using Pydantic models.
+
+        Filtering options:
+        - `applicant`: Case-insensitive partial match on the applicant name.
+        - `status`: Case-insensitive exact match on permit status (defaults to "Approved").
+        - `address`: Case-insensitive partial match on the facility address.
+        - `latitude` and `longitude`: If both are provided, calculates geodesic
+        distance (in kilometers) from the provided location to each food truck.
+        Returns the 5 closest trucks.
+
+        Notes:
+        - If no `status` is provided, it defaults to filtering for "Approved".
+        - Permits with invalid or missing coordinates are skipped from distance calculations.
+        - Returns the data as a list of dictionaries using Pydantic aliases.        
         """
         df_filtered = self.df
-        #  Returns permits with partial applicant name
         if query.applicant:
             df_filtered = df_filtered[df_filtered["Applicant"].str.contains(query.applicant, case=False, na=False)]
 
-        # If the user provides a status in the query (e.g. "expired", "approved")
         if query.status:
             df_filtered = df_filtered[
                 df_filtered["Status"].str.lower() == query.status.lower()
@@ -48,13 +66,11 @@ class PermitDataService:
                 df_filtered["Status"].str.lower() == "approved"
             ]
 
-        # Returns permits even searched with partial address name
         if query.address:
             df_filtered = df_filtered[
                 df_filtered["Address"].str.contains(query.address, case=False, na=False)
         ]
             
-        # If valid lat/lon provided, calculate distance and sort
         if query.latitude is not None and query.longitude is not None:
             user_location = (query.latitude, query.longitude)
 
@@ -72,9 +88,9 @@ class PermitDataService:
                     # Skip invalid rows
                     return float("inf") 
 
-            #  Applies the compute_distance function to each row. and creates a new column "distance"
             #  Note df.apply(..., axis=1) is slow for large datasets since this is for-loop under the hood 
             #  For large data it could be better to use geopy.distance in batches
+            df_filtered = df_filtered.copy()
             df_filtered["distance"] = df_filtered.apply(compute_distance, axis=1)
             df_filtered = df_filtered.sort_values("distance").head(5)
         # Each row is converted to a dictionary, and unpacked into Permit(**row)
