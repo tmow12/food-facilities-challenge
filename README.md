@@ -104,7 +104,9 @@ User -> React FE -> Rest API (GET) -> PermitDataService -> Data
 - Write tests for frontend react app
 
 ### What are the trade-offs you might have made?
-- Instead of loading the csv everytime the app starts, it would be preffered if a database could be setup with the sanitized data. The PermitDataService could then make calls to the database when it needs to. This would also be a solution to the limitations of the current implmentation. This would take more effort and time, but would be a better and scalable design if the app and dataset size were to grow. A database can handle much larger datasets, offers optimized query execution, and supports CRUD operations. A SQL or NoSQL database could work here, but there aoms pros and cons with each
+** CSV vs Database** 
+- Using the csv was easier to reach MVP but this doesn't scale. A database supports larger datasets, optimized queries, and better persistence.  
+  The `PermitDataService` could be refactored to query a database instead of reading from memory. This would take more effort and time, but would be a better and scalable design if the app and dataset size were to grow. A SQL or NoSQL database could work here, but there aoms pros and cons with each
 
 SQL
 Pro:
@@ -140,6 +142,6 @@ Con:
  - Data santization
  - Hook up a database instead of reading from CSV file 
  - Allow user to search by other columns
- - Increased logging, error handling, and monitoring 
+ - Increased logging, error handling, and error monitoring 
  - Building out the UI
  - Create a docker file 
