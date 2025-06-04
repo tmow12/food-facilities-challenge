@@ -7,6 +7,6 @@ class SearchQuery(BaseModel):
     """
     applicant: Optional[str] = Field(None, description="Name or partial name of the applicant")
     address: Optional[str] = Field(None, description="Address name or partial address name")
-    status: Optional[str] = Field(None, description="Status filter (e.g., APPROVED, EXPIRED)")
+    status: Optional[str] = Field(None, description="Status filter (e.g., APPROVED, EXPIRED, PENDING)")
     latitude: Optional[float] = Field(None, description="Latitude coordinate")
     longitude: Optional[float] = Field(None, description="Longitude coordinate")

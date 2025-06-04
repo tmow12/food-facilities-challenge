@@ -6,62 +6,126 @@ Users can search by vendor name, location, type of food sold, and permit status.
 
 # Runbook 
 
-to run frontend react app
-1. cd frontend
-2. npm install
-3. npm start - The React app should now be running on http://localhost:3000
+To run frontend react app
+1. `cd frontend`
+2. `npm install`
+3. `npm start` 
+4. The React app should now be running on http://localhost:3000
 
 
-to run backend fastapi server
-2. python --version
-3. pyenv install 3.10.8
-   pyenv local 3.10.8
-4. curl -sSL https://install.python-poetry.org | python3 -
-1. cd backend
-5. poetry install
-6. poetry shell
-7. poetry run uvicorn src.main:app --reload (http://localhost:8000)
+To run backend server
+1. `curl -sSL https://install.python-poetry.org | python3 -` Install poetry globally 
+2. `cd backend`
+3. `poetry install` Installs backend dependencies and starts virutal env to run python project
+4. `poetry run uvicorn src.main:app --reload` 
+5. This will start the uvicorn server at http://localhost:8000 with hot reloading
 
-
-To run test
-1. cd backend
-2. poetry run pytest 
+To run tests
+1. `cd backend`
+2. `poetry run pytest `
 
 
 # Tech Stack
+
 Frontend:
-React
-Javascript
+- React
+- Javascript
 
 Backend:
-FastAPI
-Python
-uvicorn
-pandas
-pydantic
-geopy
-PyTest
-Poetry
+- FastAPI
+- Python
+- Uvicorn
+- Pandas
+- Pydantic
+- Geopy
+- PyTest
+- Poetry
 
 # API documention
+
 http://localhost:8000/docs#/ 
 
-# Requirement 
-- As a user, I should be able to search food facility permits by applicant name. Even if type in a partial applicant name. 
-- As a user, I should be able to search food facility permits by street name. Even if type in a partial address. 
-- Given a valid latitude and longitude the user should be able search for the 5 nearest food trcks with status "Approved"
-- The search results will always default to food facilities with status "Approved" unless it is explicity set by the user
+
+# Problem
+
+The problem is to build a backend service which will allow the user to seach mobilie food facilities permit data in San Francisco. This data is given in the format of a small .csv file. 
+
+Requirements for MVP
+1. As a user, I should be able to search food facility permits by applicant name. Even if type in a partial applicant name. 
+2. As a user, I should be able to search food facility permits by street name. Even if type in a partial address. 
+3. Given a valid latitude and longitude the user should be able search for the 5 nearest food trcks with status "Approved"
+4. The search results will always default to food facilities with status "Approved" unless it is explicity set by the user
+
+Bonus: Having a UI
+
+# Solution
+
+The solution is to build a simple backend service with FastAPI that with a REST API (GET) to support this search functionality. I also created simple UI in React to allow the user to interact with this backend service.
+
+# Design/Implementation 
+
+Frontend: 
+This will be a simple frontend with 5 input fields "Applicant name, Status, Address, Longtitude, and Latitude", and a "Search" button that allow the user to make the GET request to backend. Results will be displayed in a table, containing the Applicant name, Address, and Status. These are the only displayed supported for now. Note: the "Search" buttom is disabled until the the user enters a valid input
+
+Backend:
+Before the app is started we leverage the @asynccontextmanager decorator which allows to run some logic before the FastAPI server starts. Here it will load the csv file as Pandas DataFrame and create an instance of the PermitDataService and store it in app.state. Making the DataService and DataFrame accesible through out the app and avoiding having to reload/re-parse the csv file on every request. Since the data will be stored in memory, this solution is only suitable for smaller datasets. However there are some limitations to consider with this design
+
+1. Not scalable if the dataset grows
+2. If we expect the data to be updated frequently, and need to use the freshest data, any update would require a full app reload
+3. RAM limitation
+
+I then define a a GET API endpoint a "/api/v1/permits" which allows the user to search for search for mobile food facility permits using optional query parameters "applicant name, status, address, longtitude, and latitude". These parameters are passed from frontend, I create a "SearchQuery" pydantic model to define and validate these paramters. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service is only initalized once, used for every request.
+
+The DataPermitService contains all the main search logic for filtering and returning mobile food facility permit data. 
+Filtering options:
+        - `applicant`: Case-insensitive partial match on the applicant name.
+        - `status`: Case-insensitive exact match on permit status (defaults to "Approved").
+        - `address`: Case-insensitive partial match on the facility address.
+        - `latitude` and `longitude`: If both values are provided, calculates geodesic
+        distance (in kilometers) from the provided location to each food vendor, and returns the 5 closest food vendors.
 
 
-# Design 
-In this app 
+Given the assumption that is a simple app, with a small csv file dataset this design/implementation is sufficient
+
+Flow:
+User -> React FE -> Rest API (GET) -> PermitDataService -> Data
+
 
 # Critique
-Improvements
- - build out the UI
+
+### What would you have done differently with more time?
+- Implement a database instead of using csv file
+- Completed a data sanitization before interacting with data
+- Have a more efficient implementation for calculating the closest food vendors
+- Create a better UI, would be nice to use TypeScript instead of JavaScript
+- Made "Status" input field a drop down, because there are only a few options to choose from
+(ex: approved, pending, requested, suspended, expired) and would create a better user experience 
+- Made it clear in UI that if "Status" is not explicitly set, then the search will by default only return results with "Approved" status
+- Write tests for frontend react app
+
+### What are the trade-offs you might have made?
+- Instead of loading the csv everytime the app starts.
+
+Other options:
+1. Explored was moving the csv file read logic to the service level, and loading the csv everytime the PermitDataService class is instatiated. For a smaller app with a small csv file this would be okay, but ideally we would want to avoid the amount of times we read from this csv. This design could be beneficial if we expect the data to be updated frequently. But for this use case, it would be simpler to just load the csv once on app start
+
+2. (Reccomended)
+would be for the PermitDataService to make a call to the database whenever
+- Build out a better UI 
+- Refactor the implementation for the calculating the geo location, as the current implementation is not effecient in the case 
+
+- Completed a data sanitization before hand, the current csv file headers are not uniformed, when validating the data with the Pydantic model, I am returning the JSON fields with those headers as is to frontend. If frontend was expecting a uniform format, that could cause confusion/errors. It is also best practice to be consistient with field names in general.   
+
+- Have a more scalable and efficient implementation for calculating the distance. The current implemntation is leverages .apply() which under the hood is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A girst flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more research
+
+
+### What are the things you left out?
  - API Authentication/Authorization
+ - Throttling
  - Pagination
  - Data santization
- - Expand search 
- - 
-
+ - Hook up a database instead of reading from CSV file 
+ - Allow user to search by other columns
+ - Increased logging, error handling, and monitoring 
+ - Building out the UI
+ - Create a docker file 

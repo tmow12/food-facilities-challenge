@@ -1,36 +1,22 @@
-from geopy.distance import distance
-import pandas as pd
+import logging
 from typing import List
+import pandas as pd
+from geopy.distance import distance
+
 from src.api.models.permit import Permit
 from src.api.models.search_query import SearchQuery
-import logging
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 class PermitDataService:
 
-    def __init__(self, csv_path: str = "src/data/Mobile_Food_Facility_Permit.csv"):
+    def __init__(self, df: pd.DataFrame):
         """
-        Initialize the data service with mobile food facility permit data.
-        Loads the CSV once and replaces NaNs with None.
+        Initialize the data service with mobile food facility permit data
         """
-        # loading the data from the CSV file everytime the service is initialized is not efficient,
-        # but it is done here for simplicity. In a production environment, you might want to cache this data,
-        # or load it once and keep it in memory, or use a database if the dataset is large and query the db
-        self.df = self._load_data(csv_path)
+        self.df = df
 
-    def _load_data(self, csv_path: str) -> pd.DataFrame:
-        """
-        Load and clean the permit data from a CSV file.
-        Replaces NaN with None to be compatible with Pydantic models.
-        Pydantic will intrept that as null when returning the API response
-        """
-        try:
-            df = pd.read_csv(csv_path)
-            return df.replace({float('nan'): None})
-        except Exception as e:
-            logger.error(f"Failed to load CSV at {csv_path}: {e}")
-            raise
 
     def get_permits(self, query: SearchQuery) -> List[Permit]:
         """
@@ -44,8 +30,7 @@ class PermitDataService:
         - `status`: Case-insensitive exact match on permit status (defaults to "Approved").
         - `address`: Case-insensitive partial match on the facility address.
         - `latitude` and `longitude`: If both are provided, calculates geodesic
-        distance (in kilometers) from the provided location to each food truck.
-        Returns the 5 closest trucks.
+        distance (in kilometers) from the provided location to each food vendor, and returns the 5 closest food vendors.
 
         Notes:
         - If no `status` is provided, it defaults to filtering for "Approved".
@@ -93,8 +78,9 @@ class PermitDataService:
             # Drop rows where distance is inf (invalid coordinates)
             df_filtered = df_filtered[df_filtered["distance"] != float("inf")]
             df_filtered = df_filtered.sort_values("distance").head(5)
-        # Each row is converted to a dictionary, and unpacked into Permit(**row)
-        # return [Permit(**row) for row in df_filtered.to_dict(orient="records")]
+        # 1. Each row is converted to a dictionary 
+        # 2. then unpacked into Permit model instances
+        # 3. and then serializes back to a dictionary with aliases and sent as JSON by FastAPI
         return [
             Permit(**row).model_dump(by_alias=True)
             for row in df_filtered.to_dict(orient="records")
