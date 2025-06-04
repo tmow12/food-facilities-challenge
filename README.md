@@ -56,7 +56,7 @@ Requirements for MVP
 3. Given a valid latitude and longitude the user should be able search for the 5 nearest food trcks with status "Approved"
 4. The search results will always default to food facilities with status "Approved" unless it is explicity set by the user
 
-Bonus: Having a UI, Dockerfile, API Documentation
+Bonus: Having a UI, Docker file, API Documentation
 
 # Solution
 
