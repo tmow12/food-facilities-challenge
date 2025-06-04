@@ -11,7 +11,7 @@ router = APIRouter(prefix="/api/v1", tags=["Permit Data API"])
 def get_data_service() -> PermitDataService:
     """
     Returns the PermitDataService instance.
-    This function is used to ensure that the data service is initialized only once.
+    This function is used to ensure that the data service is initialized only once
     """
     return PermitDataService()
 
