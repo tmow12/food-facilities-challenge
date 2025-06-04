@@ -8,13 +8,14 @@ Users can search by vendor name, location, type of food sold, and permit status.
 
 To run frontend react app, open terminal navigate to root directory
 1. `cd frontend`
-2. `npm install`
-3. `npm start` 
-4. The React app should now be running on http://localhost:3000
+2. `https://nodejs.org/en/download` Install node, skip this step if its already installed
+3. `npm install`
+4. `npm start` 
+5. The React app should now be running on http://localhost:3000
 
 
 To run backend server, open another terminal
-1. `curl -sSL https://install.python-poetry.org | python3 -` Install poetry globally 
+1. `brew install poetry` Install poetry globally 
 2. `cd backend`
 3. `poetry install` Installs backend dependencies and starts virutal env to run python project
 4. `poetry run uvicorn src.main:app --reload` 
@@ -53,8 +54,8 @@ The problem is to build a backend service which will allow the user to seach mob
 Requirements for MVP
 1. As a user, I should be able to search food facility permits by applicant name. Even if type in a partial applicant name. 
 2. As a user, I should be able to search food facility permits by street name. Even if type in a partial address. 
-3. Given a valid latitude and longitude the user should be able search for the 5 nearest food trcks with status "Approved"
-4. The search results will always default to food facilities with status "Approved" unless it is explicity set by the user
+3. Given a valid latitude and longitude the user should be able search for the 5 nearest food trcks with status `Approved`
+4. The search results will always default to food facilities with status `Approved` unless it is explicity set by the user
 
 Bonus: Having a UI, Docker file, API Documentation
 
@@ -68,14 +69,14 @@ Frontend:
 This will be a simple frontend with 5 input fields `Applicant name`, `Status`, `Address`, `Longtitude`, and `Latitude`, and a `Search` button that allow the user to make the GET request to backend. Results will be displayed in a table format, containing the `Applicant name`, `Address`, and `Status`. These are the only displayed fields supported for now. Note: the `Search` button is disabled until the the user enters a valid input.
 
 Backend:
-Before the app is started we leverage the @asynccontextmanager decorator which allows to run some logic before the FastAPI server starts. Here it will load the csv file as Pandas DataFrame and create an instance of the PermitDataService and store it in app.state. Making the DataService and DataFrame accesible through out the app and avoiding having to reload/re-parse the csv file on every request. Since the data will be stored in memory, this solution is only suitable for smaller datasets. However there are some limitations to consider with this design, but these issues will be considered out of scope for the MVP of this project
+Before the app is started we leverage the `@asynccontextmanager` decorator which allows to run some logic before the FastAPI server starts. Here it will load the csv file as Pandas DataFrame and create an instance of the PermitDataService and store it in app.state. Making the DataService and DataFrame accesible through out the app and avoiding having to reload/re-parse the csv file on every request. Since the data will be stored in memory, this solution is only suitable for smaller datasets. However there are some limitations to consider with this design, but these issues will be considered out of scope for the MVP of this project
 
 - **Limitions**:
 1. Not scalable if the dataset grows
 2. If we expect the data to be updated frequently, and need to use the freshest data, any update would require a full app reload
 3. RAM limitation
 
-I then define a GET API endpoint a "/api/v1/permits" which allows the user to search for search for mobile food facility permits using optional query parameters "applicant name, status, address, longtitude, and latitude". These parameters are passed from frontend, and are validated via a "SearchQuery" pydantic model I defined. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service and data is only initalized once.
+I then define a GET API endpoint a `/api/v1/permits` which allows the user to search for search for mobile food facility permits using optional query parameters `applicant name, status, address, longtitude, and latitude`. These parameters are passed from frontend, and are validated via a `SearchQuery` pydantic model I defined. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service and data is only initalized once.
 
 The DataPermitService contains all the main search logic for filtering and returning mobile food facility permit data. 
 Filtering options:
@@ -99,9 +100,9 @@ User -> React FE -> Rest API (GET) -> PermitDataService -> Data
 - Completed a data sanitization before interacting with data
 - Have a more efficient implementation for calculating the closest food vendors
 - Create a better UI, would be nice to use TypeScript instead of JavaScript
-- Made "Status" input field a drop down, because there are only a few options to choose from
+- Made `Status` input field a drop down, because there are only a few options to choose from
 (ex: approved, pending, requested, suspended, expired) and would create a better user experience 
-- Made it clear in UI that if "Status" is not explicitly set, then the search will by default only return results with "Approved" status
+- Made it clear in UI that if `Status` is not explicitly set, then the search will by default only return results with `Approved` status
 - Write tests for frontend react app
 
 ### What are the trade-offs you might have made?

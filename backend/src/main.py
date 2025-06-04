@@ -26,6 +26,14 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(routes)
 
+@app.get("/", tags=["Root"])
+async def root():
+    """
+    Simple root endpoint to verify the server is running.
+    """
+    return {"message": "server is running"}
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],  # React dev server
