@@ -74,7 +74,7 @@ Before the app is started we leverage the @asynccontextmanager decorator which a
 2. If we expect the data to be updated frequently, and need to use the freshest data, any update would require a full app reload
 3. RAM limitation
 
-I then define a a GET API endpoint a "/api/v1/permits" which allows the user to search for search for mobile food facility permits using optional query parameters "applicant name, status, address, longtitude, and latitude". These parameters are passed from frontend, I create a "SearchQuery" pydantic model to define and validate these paramters. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service is only initalized once, used for every request.
+I then define a a GET API endpoint a "/api/v1/permits" which allows the user to search for search for mobile food facility permits using optional query parameters "applicant name, status, address, longtitude, and latitude". These parameters are passed from frontend, I create a "SearchQuery" pydantic model to define and validate these paramters. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service is only initalized once.
 
 The DataPermitService contains all the main search logic for filtering and returning mobile food facility permit data. 
 Filtering options:
@@ -110,14 +110,15 @@ User -> React FE -> Rest API (GET) -> PermitDataService -> Data
 
   **SQL Pros:**
   - Structured, efficient, and validated data
+  - Fast I/O
   - Joins and complex filters
-  - Strong geospatial support (PostGIS)
 
   **SQL Cons:**
   - Requires schema design and setup
 
   **NoSQL Pros:**
   - Flexible schema
+  - Fast I/O
   - Fast, horizontally scalable
   - Easier to store nested documents
 
@@ -130,7 +131,7 @@ User -> React FE -> Rest API (GET) -> PermitDataService -> Data
   Completed a data sanitization before hand, the current csv file headers are not uniformed, when validating the data with the Pydantic model, I am returning the JSON fields with those headers as is to frontend. If frontend was expecting a uniform format, that could cause confusion/errors. It is also best practice to be consistient with field names in general.   
 
 - **Distance Calculation**:
-  Have a more scalable and efficient implementation for calculating the distance. The current implemntation is leverages .apply() which under the hood is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A girst flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more time to research
+  Have a more efficient implementation for calculating the distance. The current implemntation is leverages .apply() which under the hood is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A first flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more time to research
 
 
 ### What are the things you left out?
