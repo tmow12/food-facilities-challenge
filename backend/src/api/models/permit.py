@@ -39,9 +39,11 @@ class Permit(BaseModel):
 
     @field_validator("noi_sent", mode="before")
     def parse_noi_sent(cls, value):
-        # Custom validator for the NOISent field to parse the date string into a datetime object.
-        # Since the date format (MM/DD/YYYY hh:mm:ss AM/PM) isn't natively supported by datetime.fromisoformat() or pydantic's auto-parser
-        # If the date format is not valid, it raises a ValueError with a descriptive message
+        """
+        Custom validator for the NOISent field to parse the date string into a datetime object.
+        Since the date format (MM/DD/YYYY hh:mm:ss AM/PM) isn't natively supported by datetime.fromisoformat() or pydantic's auto-parser
+        If the date format is not valid, it raises a ValueError with a descriptive message
+        """
         if isinstance(value, str):
             try:
                 return datetime.strptime(value, "%m/%d/%Y %I:%M:%S %p")

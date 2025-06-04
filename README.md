@@ -74,7 +74,7 @@ Before the app is started we leverage the @asynccontextmanager decorator which a
 2. If we expect the data to be updated frequently, and need to use the freshest data, any update would require a full app reload
 3. RAM limitation
 
-I then define a a GET API endpoint a "/api/v1/permits" which allows the user to search for search for mobile food facility permits using optional query parameters "applicant name, status, address, longtitude, and latitude". These parameters are passed from frontend, I create a "SearchQuery" pydantic model to define and validate these paramters. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service is only initalized once.
+I then define a a GET API endpoint a "/api/v1/permits" which allows the user to search for search for mobile food facility permits using optional query parameters "applicant name, status, address, longtitude, and latitude". These parameters are passed from frontend, and are validated via a "SearchQuery" pydantic model. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service and data is only initalized once.
 
 The DataPermitService contains all the main search logic for filtering and returning mobile food facility permit data. 
 Filtering options:
