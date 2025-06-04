@@ -6,14 +6,14 @@ Users can search by vendor name, location, type of food sold, and permit status.
 
 # Runbook 
 
-To run frontend react app
+To run frontend react app, open terminal navigate to root directory
 1. `cd frontend`
 2. `npm install`
 3. `npm start` 
 4. The React app should now be running on http://localhost:3000
 
 
-To run backend server
+To run backend server, open another terminal
 1. `curl -sSL https://install.python-poetry.org | python3 -` Install poetry globally 
 2. `cd backend`
 3. `poetry install` Installs backend dependencies and starts virutal env to run python project
