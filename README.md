@@ -104,35 +104,33 @@ User -> React FE -> Rest API (GET) -> PermitDataService -> Data
 - Write tests for frontend react app
 
 ### What are the trade-offs you might have made?
-** CSV vs Database** 
-- Using the csv was easier to reach MVP but this doesn't scale. A database supports larger datasets, optimized queries, and better persistence.  
+- **CSV vs Database**: 
+  Using the csv was easier to reach MVP but this doesn't scale. A database supports larger datasets, optimized queries, and better persistence.  
   The `PermitDataService` could be refactored to query a database instead of reading from memory. This would take more effort and time, but would be a better and scalable design if the app and dataset size were to grow. A SQL or NoSQL database could work here, but there aoms pros and cons with each
 
-SQL
-Pro:
-- Good for large dataset
-- Fast I/O
-- Good for structured data
-- Data validation with schemas 
-- Table joins, filtering
-Con:
-- Extra work defining schema upfront 
+  **SQL Pros:**
+  - Structured, efficient, and validated data
+  - Joins and complex filters
+  - Strong geospatial support (PostGIS)
 
-NoSQL
-Pro:
-- Good for large dataset
-- Fast I/O
-- Easy to start for unstructured data 
-- Flexible schema
-- Good for nested documents
-Con:
-- Data validation
-- No Joins
-- Needs indexing  
+  **SQL Cons:**
+  - Requires schema design and setup
 
-- Completed a data sanitization before hand, the current csv file headers are not uniformed, when validating the data with the Pydantic model, I am returning the JSON fields with those headers as is to frontend. If frontend was expecting a uniform format, that could cause confusion/errors. It is also best practice to be consistient with field names in general.   
+  **NoSQL Pros:**
+  - Flexible schema
+  - Fast, horizontally scalable
+  - Easier to store nested documents
 
-- Have a more scalable and efficient implementation for calculating the distance. The current implemntation is leverages .apply() which under the hood is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A girst flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more time to research
+  **NoSQL Cons:**
+  - Weaker query features
+  - No joins
+  - Harder to enforce data integrity
+
+- **Data Formatting**:
+  Completed a data sanitization before hand, the current csv file headers are not uniformed, when validating the data with the Pydantic model, I am returning the JSON fields with those headers as is to frontend. If frontend was expecting a uniform format, that could cause confusion/errors. It is also best practice to be consistient with field names in general.   
+
+- **Distance Calculation**:
+  Have a more scalable and efficient implementation for calculating the distance. The current implemntation is leverages .apply() which under the hood is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A girst flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more time to research
 
 
 ### What are the things you left out?
