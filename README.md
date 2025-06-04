@@ -56,25 +56,26 @@ Requirements for MVP
 3. Given a valid latitude and longitude the user should be able search for the 5 nearest food trcks with status "Approved"
 4. The search results will always default to food facilities with status "Approved" unless it is explicity set by the user
 
-Bonus: Having a UI
+Bonus: Having a UI, Dockerfile, API Documentation
 
 # Solution
 
-The solution is to build a simple backend service with FastAPI that with a REST API (GET) to support this search functionality. I also created simple UI in React to allow the user to interact with this backend service.
+The solution is to build a simple backend service with FastAPI which expores a REST API (GET) to support search functionality. I also created simple UI in React to allow the user to interact with this backend service.
 
 # Design/Implementation 
 
 Frontend: 
-This will be a simple frontend with 5 input fields "Applicant name, Status, Address, Longtitude, and Latitude", and a "Search" button that allow the user to make the GET request to backend. Results will be displayed in a table, containing the Applicant name, Address, and Status. These are the only displayed supported for now. Note: the "Search" buttom is disabled until the the user enters a valid input
+This will be a simple frontend with 5 input fields `Applicant name`, `Status`, `Address`, `Longtitude`, and `Latitude`, and a `Search` button that allow the user to make the GET request to backend. Results will be displayed in a table format, containing the `Applicant name`, `Address`, and `Status`. These are the only displayed fields supported for now. Note: the `Search` button is disabled until the the user enters a valid input.
 
 Backend:
 Before the app is started we leverage the @asynccontextmanager decorator which allows to run some logic before the FastAPI server starts. Here it will load the csv file as Pandas DataFrame and create an instance of the PermitDataService and store it in app.state. Making the DataService and DataFrame accesible through out the app and avoiding having to reload/re-parse the csv file on every request. Since the data will be stored in memory, this solution is only suitable for smaller datasets. However there are some limitations to consider with this design, but these issues will be considered out of scope for the MVP of this project
 
+- **Limitions**:
 1. Not scalable if the dataset grows
 2. If we expect the data to be updated frequently, and need to use the freshest data, any update would require a full app reload
 3. RAM limitation
 
-I then define a a GET API endpoint a "/api/v1/permits" which allows the user to search for search for mobile food facility permits using optional query parameters "applicant name, status, address, longtitude, and latitude". These parameters are passed from frontend, and are validated via a "SearchQuery" pydantic model. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service and data is only initalized once.
+I then define a GET API endpoint a "/api/v1/permits" which allows the user to search for search for mobile food facility permits using optional query parameters "applicant name, status, address, longtitude, and latitude". These parameters are passed from frontend, and are validated via a "SearchQuery" pydantic model I defined. The route also utlizes dependency injection to access the PermitDataService that was added to the app.data during start up. This ensure that the service and data is only initalized once.
 
 The DataPermitService contains all the main search logic for filtering and returning mobile food facility permit data. 
 Filtering options:
@@ -106,7 +107,7 @@ User -> React FE -> Rest API (GET) -> PermitDataService -> Data
 ### What are the trade-offs you might have made?
 - **CSV vs Database**: 
   Using the csv was easier to reach MVP but this doesn't scale. A database supports larger datasets, optimized queries, and better persistence.  
-  The `PermitDataService` could be refactored to query a database instead of reading from memory. This would take more effort and time, but would be a better and scalable design if the app and dataset size were to grow. A SQL or NoSQL database could work here, but there aoms pros and cons with each
+  The `PermitDataService` could be refactored to query a database instead of reading from memory. This would take more effort and time, but would be a better and scalable design if the app and dataset size were to grow. A SQL or NoSQL database could work here, but there are some pros and cons with each
 
   **SQL Pros:**
   - Structured, efficient, and validated data
@@ -128,10 +129,10 @@ User -> React FE -> Rest API (GET) -> PermitDataService -> Data
   - Harder to enforce data integrity
 
 - **Data Formatting**:
-  Completed a data sanitization before hand, the current csv file headers are not uniformed, when validating the data with the Pydantic model, I am returning the JSON fields with those headers as is to frontend. If frontend was expecting a uniform format, that could cause confusion/errors. It is also best practice to be consistient with field names in general.   
+  Completed a data sanitization before hand, the current csv file headers are not uniformed, when validating the data with the Pydantic model, I am returning the JSON fields with those headers as is to frontend. If frontend was expecting a uniform format, that could cause confusion/errors. It is also best practice to be consistient with field names.
 
 - **Distance Calculation**:
-  Have a more efficient implementation for calculating the distance. The current implemntation is leverages .apply() which under the hood is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A first flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more time to research
+  Have a more efficient implementation for calculating the distance. The current implemntation leverages .apply() which under the hood, is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A first flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more time to research
 
 
 ### What are the things you left out?
