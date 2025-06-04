@@ -68,7 +68,7 @@ Frontend:
 This will be a simple frontend with 5 input fields "Applicant name, Status, Address, Longtitude, and Latitude", and a "Search" button that allow the user to make the GET request to backend. Results will be displayed in a table, containing the Applicant name, Address, and Status. These are the only displayed supported for now. Note: the "Search" buttom is disabled until the the user enters a valid input
 
 Backend:
-Before the app is started we leverage the @asynccontextmanager decorator which allows to run some logic before the FastAPI server starts. Here it will load the csv file as Pandas DataFrame and create an instance of the PermitDataService and store it in app.state. Making the DataService and DataFrame accesible through out the app and avoiding having to reload/re-parse the csv file on every request. Since the data will be stored in memory, this solution is only suitable for smaller datasets. However there are some limitations to consider with this design
+Before the app is started we leverage the @asynccontextmanager decorator which allows to run some logic before the FastAPI server starts. Here it will load the csv file as Pandas DataFrame and create an instance of the PermitDataService and store it in app.state. Making the DataService and DataFrame accesible through out the app and avoiding having to reload/re-parse the csv file on every request. Since the data will be stored in memory, this solution is only suitable for smaller datasets. However there are some limitations to consider with this design, but these issues will be considered out of scope for the MVP of this project
 
 1. Not scalable if the dataset grows
 2. If we expect the data to be updated frequently, and need to use the freshest data, any update would require a full app reload
@@ -104,19 +104,33 @@ User -> React FE -> Rest API (GET) -> PermitDataService -> Data
 - Write tests for frontend react app
 
 ### What are the trade-offs you might have made?
-- Instead of loading the csv everytime the app starts.
+- Instead of loading the csv everytime the app starts, it would be preffered if a database could be setup with the sanitized data. The PermitDataService could then make calls to the database when it needs to. This would also be a solution to the limitations of the current implmentation. This would take more effort and time, but would be a better and scalable design if the app and dataset size were to grow. A database can handle much larger datasets, offers optimized query execution, and supports CRUD operations. A SQL or NoSQL database could work here, but there aoms pros and cons with each
 
-Other options:
-1. Explored was moving the csv file read logic to the service level, and loading the csv everytime the PermitDataService class is instatiated. For a smaller app with a small csv file this would be okay, but ideally we would want to avoid the amount of times we read from this csv. This design could be beneficial if we expect the data to be updated frequently. But for this use case, it would be simpler to just load the csv once on app start
+SQL
+Pro:
+- Good for large dataset
+- Fast I/O
+- Good for structured data
+- Data validation with schemas 
+- Table joins, filtering
+Con:
+- Extra work defining schema upfront 
 
-2. (Reccomended)
-would be for the PermitDataService to make a call to the database whenever
-- Build out a better UI 
-- Refactor the implementation for the calculating the geo location, as the current implementation is not effecient in the case 
+NoSQL
+Pro:
+- Good for large dataset
+- Fast I/O
+- Easy to start for unstructured data 
+- Flexible schema
+- Good for nested documents
+Con:
+- Data validation
+- No Joins
+- Needs indexing  
 
 - Completed a data sanitization before hand, the current csv file headers are not uniformed, when validating the data with the Pydantic model, I am returning the JSON fields with those headers as is to frontend. If frontend was expecting a uniform format, that could cause confusion/errors. It is also best practice to be consistient with field names in general.   
 
-- Have a more scalable and efficient implementation for calculating the distance. The current implemntation is leverages .apply() which under the hood is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A girst flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more research
+- Have a more scalable and efficient implementation for calculating the distance. The current implemntation is leverages .apply() which under the hood is a for loop that goes over each record in the dataset, converts the lat/long to floats and calculates the geodesic distance from user's passed in cooridnates, then stores the result in a new "distance" column, sorts it, and takes the 5 closest. This is inefficient, because as the dataset grows, this operation will become slower. A possible solution I was reading into was using a haversine formula and NumPy to calculate all the distances at once, which under hood runs compiled c code. A girst flance, this would be much faster, and more performant even if the dataset grew in size. But it also seems slightly trickier to implement and would need more time to research
 
 
 ### What are the things you left out?
