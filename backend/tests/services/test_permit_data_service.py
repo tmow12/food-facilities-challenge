@@ -9,7 +9,7 @@ from src.api.models.search_query import SearchQuery
 
 @pytest.fixture
 def sample_csv_file():
-    """Fixture to create and clean up a temporary CSV file for testing."""
+    # Fixture to create and clean up a temporary CSV file for testing
     data = {
         "Applicant": ["Tasty Truck", "Yummy Meals", "Tasty Truck", "Old Truck"],
         "Status": ["APPROVED", "EXPIRED", "APPROVED", "APPROVED"],
